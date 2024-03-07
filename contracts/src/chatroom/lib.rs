@@ -3,6 +3,7 @@
 #[ink::contract]
 mod chatroom {
     use ink::prelude::string::String;
+    use ink::prelude::vec::Vec;
 
     #[ink(event)]
     pub struct ChatroomCreated {
@@ -24,11 +25,16 @@ mod chatroom {
         #[ink(constructor)]
         pub fn new() -> Self {
             let caller = Self::env().caller();
+
             let mut members: Vec<AccountId> = Vec::new();
             members.push(caller.clone());
+
+            let mut messages: Vec<String> = Vec::new();
+            messages.push(String::from("Welcome to the chatroom"));
+
             Self {
-                id: "1".to_string(),
-                messages: vec!["Welcome to the chatroom".to_string()],
+                id: String::from("1"),
+                messages: messages,
                 owner: caller,
                 members: members,
             }
@@ -56,7 +62,7 @@ mod chatroom {
         #[ink::test]
         fn new_chatroom_works() {
             let mut chatroom = Chatroom::new();
-            assert_eq!(chatroom.getId(), "1".to_string());
+            assert_eq!(chatroom.getId(), String::from("1"));
         }
     }
 

@@ -41,3 +41,4 @@ coverage.json
 
 # VSCode
 .history/
+contracts/substrate-contracts-node

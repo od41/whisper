@@ -19,12 +19,16 @@ const main = async () => {
   const { api, chain, account } = initParams
 
   // Deploy greeter contract
-  const { abi, wasm } = await getDeploymentData('greeter')
-  const greeter = await deployContract(api, account, abi, wasm, 'default', [])
+  // const { abi, wasm } = await getDeploymentData('greeter')
+  // const greeter = await deployContract(api, account, abi, wasm, 'default', [])
+
+  // Deploy greeter contract
+  const { abi, wasm } = await getDeploymentData('chatroom')
+  const chatroom = await deployContract(api, account, abi, wasm, 'new', [])
 
   // Write contract addresses to `{contract}/{network}.ts` file(s)
   await writeContractAddresses(chain.network, {
-    greeter,
+    chatroom,
   })
 }
 
