@@ -2,139 +2,132 @@
 
 #[ink::contract]
 mod chatroom {
+    // Import necessary modules
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
-
-    #[ink(event)]
-    pub struct ChatroomCreated {
-        id: String,
-        owner: Option<AccountId>,
-        members: Vec<Option<AccountId>>,
-    }
+    use ink::storage::Mapping;
 
     #[ink(storage)]
     pub struct Chatroom {
-        id: String,
         owner: AccountId,
-        messages: Vec<String>,
-        members: Vec<AccountId>,
+        participants: Mapping<AccountId, ()>,
+        messages: Mapping<AccountId, Vec<String>>,
+        timeout: Timestamp,
+    }
+    
+    pub struct ChatroomFactory {
+        chatrooms: Mapping<AccountId, AccountId>,
     }
 
     impl Chatroom {
-        /// Constructor that initializes the `bool` value to the given `init_value`.
+        // Constructor to initialize the contract
         #[ink(constructor)]
         pub fn new() -> Self {
-            let caller = Self::env().caller();
-
-            let mut members: Vec<AccountId> = Vec::new();
-            members.push(caller.clone());
-
-            let mut messages: Vec<String> = Vec::new();
-            messages.push(String::from("Welcome to the chatroom"));
-
+            let timeout = (Self::env().block_timestamp() + &3600000);
             Self {
-                id: String::from("1"),
-                messages: messages,
-                owner: caller,
-                members: members,
+                owner: Self::env().caller(),
+                participants: Mapping::new(),
+                messages: Mapping::new(),
+                timeout: timeout,
             }
         }
 
-        /// A message that can be called on instantiated contracts.
-        /// This one flips the value of the stored `bool` from `true`
-        /// to `false` and vice versa.
         #[ink(message)]
-        pub fn getId(&mut self) -> String {
-            self.id.clone()
+        pub fn create_chatroom(&mut self) -> AccountId {
+            // Create a new chatroom
+            let chatroom_id = self.env().account_id(); // TODO
+
+            // Store the chatroom owner
+            self.chatrooms.insert(chatroom_id, &self.env().caller());
+
+            chatroom_id
         }
 
         #[ink(message)]
-        pub fn getOwner(&mut self) -> AccountId {
-            self.owner
+        pub fn get_chatroom_owner(&self, chatroom_id: AccountId) -> Option<AccountId> {
+            self.chatrooms.get(&chatroom_id)
+        }
+
+        #[ink(message)]
+        pub fn invite(&mut self, participant: AccountId) {
+            // Ensure only the owner can invite participants
+            assert_eq!(
+                self.owner,
+                self.env().caller(),
+                "Only owner can invite participants"
+            );
+            self.participants.insert(participant, &());
+        }
+
+        #[ink(message)]
+        pub fn send_message(&mut self, message: String) {
+            // Ensure the sender is a participant of the chatroom
+            match self.participants.get(&self.env().caller()) {
+                Some(_) => (),
+                None => panic!("Sender is not a participant of the chatroom"),
+            };
+
+            // Add the message to sender's messages
+            let sender = self.env().caller();
+            let mut sender_messages = self.messages.get(sender).unwrap_or(Vec::new());
+            sender_messages.push(message);
+        }
+
+        #[ink(message)]
+        pub fn get_messages(&self) -> Vec<String> {
+            // Ensure the caller is a participant of the chatroom
+            match self.participants.get(&self.env().caller()) {
+                Some(_) => (),
+                None => panic!("Caller is not a participant of the chatroom"),
+            };
+
+            // Retrieve messages for the caller if any
+            self.messages.get(&self.env().caller()).unwrap_or_default()
+        }
+
+        #[ink(message)]
+        pub fn delete_chatroom(&mut self) {
+            // Ensure only the owner can delete the chatroom
+            assert_eq!(
+                self.owner,
+                self.env().caller(),
+                "Only owner can delete the chatroom"
+            );
+
+            // Self-destruct the contract
+            self.env().terminate_contract(self.owner);
+        }
+
+        #[ink(message)]
+        pub fn set_timeout(&mut self, timeout: Timestamp) {
+            // Ensure only the owner can set the timeout
+            assert_eq!(
+                self.owner,
+                self.env().caller(),
+                "Only owner can set timeout"
+            );
+
+            // Set the timeout
+            self.timeout = timeout;
+        }
+
+        #[ink(message)]
+        pub fn check_timeout(&mut self) {
+            // Ensure only the owner can check timeout
+            assert_eq!(
+                self.owner,
+                self.env().caller(),
+                "Only owner can check timeout"
+            );
+
+            // Get the current timestamp
+            let current_time = self.env().block_timestamp();
+
+            // Check if the timeout has expired
+            if current_time >= self.timeout {
+                // Self-destruct the contract
+                self.env().terminate_contract(self.owner);
+            }
         }
     }
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        /// We test a simple use case of our contract.
-        #[ink::test]
-        fn new_chatroom_works() {
-            let mut chatroom = Chatroom::new();
-            assert_eq!(chatroom.getId(), String::from("1"));
-        }
-    }
-
-    // / This is how you'd write end-to-end (E2E) or integration tests for ink! contracts.
-    // /
-    // / When running these you need to make sure that you:
-    // / - Compile the tests with the `e2e-tests` feature flag enabled (`--features e2e-tests`)
-    // / - Are running a Substrate node which contains `pallet-contracts` in the background
-    // #[cfg(all(test, feature = "e2e-tests"))]
-    // mod e2e_tests {
-    //     /// Imports all the definitions from the outer scope so we can use them here.
-    //     use super::*;
-
-    //     /// A helper function used for calling contract messages.
-    //     use ink_e2e::build_message;
-
-    //     /// The End-to-End test `Result` type.
-    //     type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-    //     /// We test that we can upload and instantiate the contract using its default constructor.
-    //     #[ink_e2e::test]
-    //     async fn default_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-    //         // Given
-    //         let constructor = ChatroomRef::default();
-
-    //         // When
-    //         let contract_account_id = client
-    //             .instantiate("chatroom", &ink_e2e::alice(), constructor, 0, None)
-    //             .await
-    //             .expect("instantiate failed")
-    //             .account_id;
-
-    //         // Then
-    //         let get = build_message::<ChatroomRef>(contract_account_id.clone())
-    //             .call(|chatroom| chatroom.get());
-    //         let get_result = client.call_dry_run(&ink_e2e::alice(), &get, 0, None).await;
-    //         assert!(matches!(get_result.return_value(), false));
-
-    //         Ok(())
-    //     }
-
-    //     /// We test that we can read and write a value from the on-chain contract contract.
-    //     #[ink_e2e::test]
-    //     async fn it_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-    //         // Given
-    //         let constructor = ChatroomRef::new(false);
-    //         let contract_account_id = client
-    //             .instantiate("chatroom", &ink_e2e::bob(), constructor, 0, None)
-    //             .await
-    //             .expect("instantiate failed")
-    //             .account_id;
-
-    //         let get = build_message::<ChatroomRef>(contract_account_id.clone())
-    //             .call(|chatroom| chatroom.get());
-    //         let get_result = client.call_dry_run(&ink_e2e::bob(), &get, 0, None).await;
-    //         assert!(matches!(get_result.return_value(), false));
-
-    //         // When
-    //         let flip = build_message::<ChatroomRef>(contract_account_id.clone())
-    //             .call(|chatroom| chatroom.flip());
-    //         let _flip_result = client
-    //             .call(&ink_e2e::bob(), flip, 0, None)
-    //             .await
-    //             .expect("flip failed");
-
-    //         // Then
-    //         let get = build_message::<ChatroomRef>(contract_account_id.clone())
-    //             .call(|chatroom| chatroom.get());
-    //         let get_result = client.call_dry_run(&ink_e2e::bob(), &get, 0, None).await;
-    //         assert!(matches!(get_result.return_value(), true));
-
-    //         Ok(())
-    //     }
-    // }
 }

@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xe3c0527753972c39e42572e19da5b98d6b3c65686b6d500dbeb82ca09e441579",
+    "hash": "0x20d9471fc897889f799fffa19609b7c2b697eb4786cf595ae1af3bd070f4550f",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.71.0",
     "build_info": {
@@ -26,9 +26,7 @@
       {
         "args": [],
         "default": false,
-        "docs": [
-          "Constructor that initializes the `bool` value to the given `init_value`."
-        ],
+        "docs": [],
         "label": "new",
         "payable": false,
         "returnType": {
@@ -36,7 +34,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 6
+          "type": 7
         },
         "selector": "0x9bae9d5e"
       }
@@ -47,81 +45,41 @@
         "displayName": [
           "AccountId"
         ],
-        "type": 1
+        "type": 0
       },
       "balance": {
         "displayName": [
           "Balance"
         ],
-        "type": 13
+        "type": 10
       },
       "blockNumber": {
         "displayName": [
           "BlockNumber"
         ],
-        "type": 16
+        "type": 12
       },
       "chainExtension": {
         "displayName": [
           "ChainExtension"
         ],
-        "type": 17
+        "type": 13
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 14
+        "type": 11
       },
       "maxEventTopics": 4,
       "timestamp": {
         "displayName": [
           "Timestamp"
         ],
-        "type": 15
+        "type": 6
       }
     },
-    "events": [
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "id",
-            "type": {
-              "displayName": [
-                "String"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 11
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "members",
-            "type": {
-              "displayName": [
-                "Vec"
-              ],
-              "type": 12
-            }
-          }
-        ],
-        "docs": [],
-        "label": "ChatroomCreated"
-      }
-    ],
+    "events": [],
     "lang_error": {
       "displayName": [
         "ink",
@@ -131,15 +89,63 @@
     },
     "messages": [
       {
+        "args": [
+          {
+            "label": "participant",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "invite",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 7
+        },
+        "selector": "0x8d55fa39"
+      },
+      {
+        "args": [
+          {
+            "label": "message",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "send_message",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 7
+        },
+        "selector": "0xafdc403f"
+      },
+      {
         "args": [],
         "default": false,
-        "docs": [
-          " A message that can be called on instantiated contracts.",
-          " This one flips the value of the stored `bool` from `true`",
-          " to `false` and vice versa."
-        ],
-        "label": "getId",
-        "mutates": true,
+        "docs": [],
+        "label": "get_messages",
+        "mutates": false,
         "payable": false,
         "returnType": {
           "displayName": [
@@ -148,13 +154,13 @@
           ],
           "type": 9
         },
-        "selector": "0xd15f659a"
+        "selector": "0xa9eb1c14"
       },
       {
         "args": [],
         "default": false,
         "docs": [],
-        "label": "getOwner",
+        "label": "delete_chatroom",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -162,9 +168,51 @@
             "ink",
             "MessageResult"
           ],
-          "type": 10
+          "type": 7
         },
-        "selector": "0xa6077113"
+        "selector": "0x53f64fda"
+      },
+      {
+        "args": [
+          {
+            "label": "timeout",
+            "type": {
+              "displayName": [
+                "Timestamp"
+              ],
+              "type": 6
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "set_timeout",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 7
+        },
+        "selector": "0x7a9acd65"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "check_timeout",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 7
+        },
+        "selector": "0x40280ee8"
       }
     ]
   },
@@ -180,22 +228,32 @@
                   "ty": 0
                 }
               },
-              "name": "id"
-            },
-            {
-              "layout": {
-                "leaf": {
-                  "key": "0x00000000",
-                  "ty": 1
-                }
-              },
               "name": "owner"
             },
             {
               "layout": {
-                "leaf": {
-                  "key": "0x00000000",
-                  "ty": 4
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x6f642ceb",
+                      "ty": 3
+                    }
+                  },
+                  "root_key": "0x6f642ceb"
+                }
+              },
+              "name": "participants"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x2d625b4e",
+                      "ty": 4
+                    }
+                  },
+                  "root_key": "0x2d625b4e"
                 }
               },
               "name": "messages"
@@ -204,10 +262,10 @@
               "layout": {
                 "leaf": {
                   "key": "0x00000000",
-                  "ty": 5
+                  "ty": 6
                 }
               },
-              "name": "members"
+              "name": "timeout"
             }
           ],
           "name": "Chatroom"
@@ -221,18 +279,10 @@
       "id": 0,
       "type": {
         "def": {
-          "primitive": "str"
-        }
-      }
-    },
-    {
-      "id": 1,
-      "type": {
-        "def": {
           "composite": {
             "fields": [
               {
-                "type": 2,
+                "type": 1,
                 "typeName": "[u8; 32]"
               }
             ]
@@ -246,13 +296,21 @@
       }
     },
     {
-      "id": 2,
+      "id": 1,
       "type": {
         "def": {
           "array": {
             "len": 32,
-            "type": 3
+            "type": 2
           }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": {
+        "def": {
+          "primitive": "u8"
         }
       }
     },
@@ -260,7 +318,7 @@
       "id": 3,
       "type": {
         "def": {
-          "primitive": "u8"
+          "tuple": []
         }
       }
     },
@@ -269,7 +327,7 @@
       "type": {
         "def": {
           "sequence": {
-            "type": 0
+            "type": 5
           }
         }
       }
@@ -278,9 +336,7 @@
       "id": 5,
       "type": {
         "def": {
-          "sequence": {
-            "type": 1
-          }
+          "primitive": "str"
         }
       }
     },
@@ -288,12 +344,20 @@
       "id": 6,
       "type": {
         "def": {
+          "primitive": "u64"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": {
+        "def": {
           "variant": {
             "variants": [
               {
                 "fields": [
                   {
-                    "type": 7
+                    "type": 3
                   }
                 ],
                 "index": 0,
@@ -314,7 +378,7 @@
         "params": [
           {
             "name": "T",
-            "type": 7
+            "type": 3
           },
           {
             "name": "E",
@@ -324,14 +388,6 @@
         "path": [
           "Result"
         ]
-      }
-    },
-    {
-      "id": 7,
-      "type": {
-        "def": {
-          "tuple": []
-        }
       }
     },
     {
@@ -362,7 +418,7 @@
               {
                 "fields": [
                   {
-                    "type": 0
+                    "type": 4
                   }
                 ],
                 "index": 0,
@@ -383,7 +439,7 @@
         "params": [
           {
             "name": "T",
-            "type": 0
+            "type": 4
           },
           {
             "name": "E",
@@ -399,103 +455,18 @@
       "id": 10,
       "type": {
         "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 1
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 8
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 1
-          },
-          {
-            "name": "E",
-            "type": 8
-          }
-        ],
-        "path": [
-          "Result"
-        ]
+          "primitive": "u128"
+        }
       }
     },
     {
       "id": 11,
       "type": {
         "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 0,
-                "name": "None"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 1
-                  }
-                ],
-                "index": 1,
-                "name": "Some"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 1
-          }
-        ],
-        "path": [
-          "Option"
-        ]
-      }
-    },
-    {
-      "id": 12,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 11
-          }
-        }
-      }
-    },
-    {
-      "id": 13,
-      "type": {
-        "def": {
-          "primitive": "u128"
-        }
-      }
-    },
-    {
-      "id": 14,
-      "type": {
-        "def": {
           "composite": {
             "fields": [
               {
-                "type": 2,
+                "type": 1,
                 "typeName": "[u8; 32]"
               }
             ]
@@ -509,15 +480,7 @@
       }
     },
     {
-      "id": 15,
-      "type": {
-        "def": {
-          "primitive": "u64"
-        }
-      }
-    },
-    {
-      "id": 16,
+      "id": 12,
       "type": {
         "def": {
           "primitive": "u32"
@@ -525,7 +488,7 @@
       }
     },
     {
-      "id": 17,
+      "id": 13,
       "type": {
         "def": {
           "variant": {}

@@ -24,7 +24,7 @@ const formSchema = z.object({
   newMessage: z.string().min(1).max(400),
 })
 
-export const Chatroom: FC = () => {
+export const SendMessage: FC = () => {
   const { api, activeAccount, activeSigner } = useInkathon()
   const { contract, address: contractAddress } = useRegisteredContract(ContractIds.Chatroom)
   const { typedContract } = useRegisteredTypedContract(ContractIds.Chatroom, GreeterContract)

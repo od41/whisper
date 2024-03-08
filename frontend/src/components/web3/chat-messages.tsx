@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Spinner } from '@/components/ui/spinner'
 
 import { Message, MessageProps } from './message'
+import { SendMessage } from './send-message'
 
 export const ChatMessages: FC = () => {
   const { api, activeChain } = useInkathon()
@@ -121,6 +122,8 @@ export const ChatMessages: FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <SendMessage />
     </>
   )
 }

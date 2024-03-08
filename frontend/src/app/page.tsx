@@ -6,7 +6,6 @@ import { useInkathon } from '@scio-labs/use-inkathon'
 import { toast } from 'react-hot-toast'
 
 import { ChatMessages } from '@/components/web3/chat-messages'
-import { Chatroom } from '@/components/web3/chatroom'
 import { ConnectButton } from '@/components/web3/connect-button'
 
 export default function HomePage() {
@@ -29,8 +28,6 @@ export default function HomePage() {
         <div className="mt-12 flex max-w-[22rem] flex-col items-start justify-center gap-4">
           {/* Chain Metadata Information */}
           <ChatMessages />
-
-          <Chatroom />
         </div>
       </div>
     </>
