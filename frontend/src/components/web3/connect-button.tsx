@@ -79,7 +79,7 @@ export const ConnectButton: FC<ConnectButtonProps> = () => {
             disabled={isConnecting}
             translate="no"
           >
-            Connect Wallet
+            Sign in
             <RiArrowDownSLine size={20} aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>

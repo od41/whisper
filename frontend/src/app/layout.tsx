@@ -19,15 +19,15 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'ink!athon Boilerplate',
-  description: 'Full-Stack DApp Boilerplate for ink! Smart Contracts',
+  title: 'Whisper | Disappearing group chats',
+  description: 'Private and ephemeral conversations for the privacy focused individual',
   metadataBase: new URL(env.url),
   robots: env.isProduction ? 'all' : 'noindex,nofollow',
   openGraph: {
     type: 'website',
     locale: 'en',
     url: env.url,
-    siteName: 'ink!athon Boilerplate',
+    siteName: 'Whisper | Disappearing group chats',
     images: [
       {
         url: '/images/inkathon-og-banner.jpg',
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    site: '@scio_xyz',
-    creator: '@scio_xyz',
+    site: '@elder41_',
+    creator: '@elder41_',
     card: 'summary_large_image',
   },
 }
