@@ -3,7 +3,6 @@
 #[ink::contract]
 mod chatroom_factory {
     // Import necessary modules
-    use chatroom::ChatroomRef;
     use ink::storage::Mapping;
 
     #[ink(storage)]

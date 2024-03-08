@@ -7,115 +7,141 @@ mod chatroom {
     use ink::prelude::vec::Vec;
     use ink::storage::Mapping;
 
-    #[ink(storage)]
+    #[derive(Debug, Clone, PartialEq, scale::Encode, scale::Decode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
     pub struct Chatroom {
         owner: AccountId,
-        participants: Mapping<AccountId, ()>,
-        messages: Mapping<AccountId, Vec<String>>,
+        messages: Vec<String>,
         timeout: Timestamp,
     }
-    
+
+    #[ink(storage)]
     pub struct ChatroomFactory {
-        chatrooms: Mapping<AccountId, AccountId>,
+        chatrooms: Mapping<AccountId, Chatroom>,
+        participants: Mapping<AccountId, Vec<AccountId>>,
     }
 
-    impl Chatroom {
+    impl ChatroomFactory {
         // Constructor to initialize the contract
         #[ink(constructor)]
         pub fn new() -> Self {
-            let timeout = (Self::env().block_timestamp() + &3600000);
             Self {
-                owner: Self::env().caller(),
+                chatrooms: Mapping::new(),
                 participants: Mapping::new(),
-                messages: Mapping::new(),
-                timeout: timeout,
             }
         }
 
         #[ink(message)]
         pub fn create_chatroom(&mut self) -> AccountId {
+            // TODO: let there be optional list of participants & first message
             // Create a new chatroom
-            let chatroom_id = self.env().account_id(); // TODO
+            let caller = self.env().caller(); // TODO
+            let timeout = (Self::env().block_timestamp() + &3600000); // 60 minutes destroy chatroom in 60 minutes
+            let new_chatroom = Chatroom {
+                owner: Self::env().caller(),
+                messages: Vec::new(),
+                timeout: timeout,
+            };
 
             // Store the chatroom owner
-            self.chatrooms.insert(chatroom_id, &self.env().caller());
+            self.chatrooms.insert(caller, &new_chatroom);
 
-            chatroom_id
+            caller // caller account_id is the id for the chatroom
         }
 
         #[ink(message)]
-        pub fn get_chatroom_owner(&self, chatroom_id: AccountId) -> Option<AccountId> {
-            self.chatrooms.get(&chatroom_id)
+        pub fn get_chatroom(&self, chatroom_id: AccountId) -> Option<Chatroom> {
+            match self.chatrooms.get(chatroom_id) {
+                Some(chat) => Some(chat),
+                None => None,
+            }
         }
 
         #[ink(message)]
-        pub fn invite(&mut self, participant: AccountId) {
+        pub fn invite(&mut self, chatroom_id: AccountId, participant: AccountId) {
+            let chatroom = self.get_chatroom(chatroom_id.clone()).unwrap();
             // Ensure only the owner can invite participants
             assert_eq!(
-                self.owner,
+                chatroom.owner,
                 self.env().caller(),
                 "Only owner can invite participants"
             );
-            self.participants.insert(participant, &());
+            // update participants vector in chatroom
+            let mut participants_list = self.participants.get(chatroom.owner).unwrap();
+            participants_list.push(participant);
         }
 
         #[ink(message)]
-        pub fn send_message(&mut self, message: String) {
+        pub fn send_message(&mut self, chatroom_id: AccountId, message: String) {
             // Ensure the sender is a participant of the chatroom
             match self.participants.get(&self.env().caller()) {
                 Some(_) => (),
                 None => panic!("Sender is not a participant of the chatroom"),
             };
 
+            let chatroom = self.get_chatroom(chatroom_id).unwrap();
+
             // Add the message to sender's messages
             let sender = self.env().caller();
-            let mut sender_messages = self.messages.get(sender).unwrap_or(Vec::new());
-            sender_messages.push(message);
+            let mut messages = chatroom.messages;
+            messages.push(message);
         }
 
         #[ink(message)]
-        pub fn get_messages(&self) -> Vec<String> {
+        pub fn get_messages(&self, chatroom_id: AccountId) -> Vec<String> {
             // Ensure the caller is a participant of the chatroom
             match self.participants.get(&self.env().caller()) {
                 Some(_) => (),
                 None => panic!("Caller is not a participant of the chatroom"),
             };
+            let chatroom = self.get_chatroom(chatroom_id).unwrap();
 
             // Retrieve messages for the caller if any
-            self.messages.get(&self.env().caller()).unwrap_or_default()
+            chatroom.messages
         }
 
         #[ink(message)]
-        pub fn delete_chatroom(&mut self) {
+        pub fn delete_chatroom(&mut self, chatroom_id: AccountId) {
+            let chatroom = self.get_chatroom(chatroom_id).unwrap();
+
             // Ensure only the owner can delete the chatroom
             assert_eq!(
-                self.owner,
+                chatroom.owner.clone(),
                 self.env().caller(),
                 "Only owner can delete the chatroom"
             );
 
-            // Self-destruct the contract
-            self.env().terminate_contract(self.owner);
+            // delete the contract from storage
+            self.chatrooms.remove(chatroom.owner);
         }
 
         #[ink(message)]
-        pub fn set_timeout(&mut self, timeout: Timestamp) {
+        pub fn set_timeout(&mut self, chatroom_id: AccountId, timeout: Timestamp) {
+            let chatroom = self.get_chatroom(chatroom_id).unwrap();
+
             // Ensure only the owner can set the timeout
             assert_eq!(
-                self.owner,
+                chatroom.owner.clone(),
                 self.env().caller(),
                 "Only owner can set timeout"
             );
 
+            let mut old_timeout = chatroom.timeout;
+
             // Set the timeout
-            self.timeout = timeout;
+            old_timeout = timeout;
         }
 
         #[ink(message)]
-        pub fn check_timeout(&mut self) {
+        pub fn check_timeout(&mut self, chatroom_id: AccountId) {
+            let chatroom = self.get_chatroom(chatroom_id).unwrap();
+
             // Ensure only the owner can check timeout
             assert_eq!(
-                self.owner,
+                chatroom.owner.clone(),
                 self.env().caller(),
                 "Only owner can check timeout"
             );
@@ -124,9 +150,9 @@ mod chatroom {
             let current_time = self.env().block_timestamp();
 
             // Check if the timeout has expired
-            if current_time >= self.timeout {
-                // Self-destruct the contract
-                self.env().terminate_contract(self.owner);
+            if current_time >= chatroom.timeout {
+                // delete the contract from storage
+                self.chatrooms.remove(chatroom.owner);
             }
         }
     }
