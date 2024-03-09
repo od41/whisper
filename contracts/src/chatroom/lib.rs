@@ -12,19 +12,19 @@ mod chatroom {
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
-    pub struct Chatroom {
+    pub struct Room {
         owner: AccountId,
         messages: Vec<String>,
         timeout: Timestamp,
     }
 
     #[ink(storage)]
-    pub struct ChatroomFactory {
-        chatrooms: Mapping<AccountId, Chatroom>,
+    pub struct Chatroom {
+        chatrooms: Mapping<AccountId, Room>,
         participants: Mapping<AccountId, Vec<AccountId>>,
     }
 
-    impl ChatroomFactory {
+    impl Chatroom {
         // Constructor to initialize the contract
         #[ink(constructor)]
         pub fn new() -> Self {
@@ -39,8 +39,8 @@ mod chatroom {
             // TODO: let there be optional list of participants & first message
             // Create a new chatroom
             let caller = self.env().caller(); // TODO
-            let timeout = (Self::env().block_timestamp() + &3600000); // 60 minutes destroy chatroom in 60 minutes
-            let new_chatroom = Chatroom {
+            let timeout = self.env().block_timestamp() + &3600000; // 60 minutes destroy chatroom in 60 minutes
+            let new_chatroom = Room {
                 owner: Self::env().caller(),
                 messages: Vec::new(),
                 timeout: timeout,
@@ -49,11 +49,16 @@ mod chatroom {
             // Store the chatroom owner
             self.chatrooms.insert(caller, &new_chatroom);
 
+            // Store the participants (which is just the chatroom owner at this point)
+            let mut new_participants = Vec::new();
+            new_participants.push(caller);
+            self.participants.insert(caller, &new_participants);
+
             caller // caller account_id is the id for the chatroom
         }
 
         #[ink(message)]
-        pub fn get_chatroom(&self, chatroom_id: AccountId) -> Option<Chatroom> {
+        pub fn get_chatroom(&self, chatroom_id: AccountId) -> Option<Room> {
             match self.chatrooms.get(chatroom_id) {
                 Some(chat) => Some(chat),
                 None => None,
@@ -72,22 +77,28 @@ mod chatroom {
             // update participants vector in chatroom
             let mut participants_list = self.participants.get(chatroom.owner).unwrap();
             participants_list.push(participant);
+            self.participants
+                .insert(self.env().caller(), &participants_list);
         }
 
         #[ink(message)]
         pub fn send_message(&mut self, chatroom_id: AccountId, message: String) {
+            let caller = self.env().caller();
             // Ensure the sender is a participant of the chatroom
-            match self.participants.get(&self.env().caller()) {
-                Some(_) => (),
-                None => panic!("Sender is not a participant of the chatroom"),
+            match self.participants.get(&chatroom_id) {
+                Some(participants_list) => {
+                    assert!(
+                        participants_list.contains(&caller),
+                        "Sender is not a participant of the chatroom"
+                    );
+                }
+                None => panic!("Chatroom doesn't exist"),
             };
 
-            let chatroom = self.get_chatroom(chatroom_id).unwrap();
+            let mut room = self.get_chatroom(chatroom_id).unwrap();
 
-            // Add the message to sender's messages
-            let sender = self.env().caller();
-            let mut messages = chatroom.messages;
-            messages.push(message);
+            // let mut messages = chatroom.messages;
+            room.messages.push(message);
         }
 
         #[ink(message)]
@@ -97,10 +108,10 @@ mod chatroom {
                 Some(_) => (),
                 None => panic!("Caller is not a participant of the chatroom"),
             };
-            let chatroom = self.get_chatroom(chatroom_id).unwrap();
+            let room = self.get_chatroom(chatroom_id).unwrap();
 
             // Retrieve messages for the caller if any
-            chatroom.messages
+            room.messages
         }
 
         #[ink(message)]
@@ -120,7 +131,7 @@ mod chatroom {
 
         #[ink(message)]
         pub fn set_timeout(&mut self, chatroom_id: AccountId, timeout: Timestamp) {
-            let chatroom = self.get_chatroom(chatroom_id).unwrap();
+            let mut chatroom = self.get_chatroom(chatroom_id).unwrap();
 
             // Ensure only the owner can set the timeout
             assert_eq!(
@@ -129,10 +140,8 @@ mod chatroom {
                 "Only owner can set timeout"
             );
 
-            let mut old_timeout = chatroom.timeout;
-
             // Set the timeout
-            old_timeout = timeout;
+            chatroom.timeout = timeout;
         }
 
         #[ink(message)]
@@ -155,5 +164,109 @@ mod chatroom {
                 self.chatrooms.remove(chatroom.owner);
             }
         }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use ink::env::{account_id, test::default_accounts};
+
+        use super::*;
+
+        #[ink::test]
+        fn new_works() {
+            let account = AccountId::from([0x1; 32]);
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(account);
+
+            let mut chatroom = Chatroom::new();
+            let chatroom_id = chatroom.create_chatroom();
+            assert_eq!(chatroom_id, account);
+        }
+
+        #[ink::test]
+        fn create_chatroom_works() {}
+
+        #[ink::test]
+        fn get_chatroom_works() {
+            let account = AccountId::from([0x1; 32]);
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(account);
+
+            let mut chatroom = Chatroom::new();
+            chatroom.create_chatroom();
+            let chatroom_id = chatroom.get_chatroom(account).unwrap();
+
+            assert_eq!(chatroom_id.owner, account);
+        }
+
+        #[ink::test]
+        fn invite_works() {
+            let account1 = AccountId::from([0x1; 32]);
+            let account2 = AccountId::from([0x2; 32]);
+
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(account1);
+
+            let mut chatroom = Chatroom::new();
+            chatroom.create_chatroom();
+
+            // invite account2
+            chatroom.invite(account1.clone(), account2.clone());
+
+            // check participants list for account2
+            assert!(
+                chatroom
+                    .participants
+                    .get(account1)
+                    .unwrap()
+                    .contains(&account2),
+                "Account is not a participant"
+            );
+        }
+
+        #[ink::test]
+        fn send_message_works() {
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+
+            let chatroom_id = accounts.bob.clone();
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(chatroom_id);
+
+            let mut chatroom = Chatroom::new();
+            chatroom.create_chatroom();
+
+            // invite alice & charlie
+            chatroom.invite(chatroom_id, accounts.alice);
+            chatroom.invite(chatroom_id, accounts.charlie);
+
+            // get the room created by bob/chatroom_id
+            let room1 = chatroom.get_chatroom(chatroom_id).unwrap();
+
+            // account 2 send message
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice); // set account2 as the current caller
+            let message1 = String::from("This is the first message");
+            chatroom.send_message(chatroom_id, message1.clone());
+
+            print!(
+                "room1 messages {:?} size: {} djdjsk",
+                room1.messages,
+                room1.messages.len()
+            );
+            // check message1
+            assert!(room1.messages.contains(&message1), "Message does not exist");
+
+            // // account 3 send message
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.charlie); // set account3 as the current caller
+            let message2 = String::from("Do or do not, there's no try");
+            chatroom.send_message(accounts.charlie, message2.clone());
+
+            // // check message2
+            assert!(room1.messages.contains(&message2), "Message does not exist");
+        }
+
+        #[ink::test]
+        fn get_messages_works() {}
+
+        #[ink::test]
+        fn delete_chatroom_works() {}
+
+        #[ink::test]
+        fn check_timeout() {}
     }
 }

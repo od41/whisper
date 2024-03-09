@@ -1,4 +1,4 @@
 [workspace]
 
 resolver = "1"
-members = ["src/greeter", "src/chatroom", "src/chatroom_factory"]
+members = ["src/greeter", "src/chatroom"]
