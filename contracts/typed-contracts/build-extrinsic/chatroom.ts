@@ -21,23 +21,103 @@ export default class Methods {
 		this.__apiPromise = apiPromise;
 	}
 	/**
-	 * getId
+	 * createChatroom
 	 *
 	*/
-	"getId" (
+	"createChatroom" (
 		__options: GasLimit,
 	){
-		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "getId", [], __options);
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "createChatroom", [], __options);
 	}
 
 	/**
-	 * getOwner
+	 * getChatroom
 	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
 	*/
-	"getOwner" (
+	"getChatroom" (
+		chatroomId: ArgumentTypes.AccountId,
 		__options: GasLimit,
 	){
-		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "getOwner", [], __options);
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "getChatroom", [chatroomId], __options);
+	}
+
+	/**
+	 * invite
+	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
+	 * @param { ArgumentTypes.AccountId } participant,
+	*/
+	"invite" (
+		chatroomId: ArgumentTypes.AccountId,
+		participant: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "invite", [chatroomId, participant], __options);
+	}
+
+	/**
+	 * sendMessage
+	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
+	 * @param { string } message,
+	*/
+	"sendMessage" (
+		chatroomId: ArgumentTypes.AccountId,
+		message: string,
+		__options: GasLimit,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "sendMessage", [chatroomId, message], __options);
+	}
+
+	/**
+	 * getMessages
+	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
+	*/
+	"getMessages" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "getMessages", [chatroomId], __options);
+	}
+
+	/**
+	 * deleteChatroom
+	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
+	*/
+	"deleteChatroom" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "deleteChatroom", [chatroomId], __options);
+	}
+
+	/**
+	 * setTimeout
+	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
+	 * @param { (number | string | BN) } timeout,
+	*/
+	"setTimeout" (
+		chatroomId: ArgumentTypes.AccountId,
+		timeout: (number | string | BN),
+		__options: GasLimit,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "setTimeout", [chatroomId, timeout], __options);
+	}
+
+	/**
+	 * checkTimeout
+	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
+	*/
+	"checkTimeout" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "checkTimeout", [chatroomId], __options);
 	}
 
 }

@@ -38,29 +38,123 @@ export default class Methods {
 	}
 
 	/**
-	* getId
+	* createChatroom
 	*
 	* @returns { void }
 	*/
-	"getId" (
+	"createChatroom" (
 		__options: GasLimit,
 	){
-		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "getId", (events: EventRecord) => {
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "createChatroom", (events: EventRecord) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
 		}, [], __options);
 	}
 
 	/**
-	* getOwner
+	* getChatroom
 	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { Result<ReturnTypes.Room | null, ReturnTypes.LangError> }
+	*/
+	"getChatroom" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	): Promise< QueryReturnType< Result<ReturnTypes.Room | null, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "getChatroom", [chatroomId], __options, (result) => { return handleReturnType(result, getTypeDescription(11, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* invite
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @param { ArgumentTypes.AccountId } participant,
 	* @returns { void }
 	*/
-	"getOwner" (
+	"invite" (
+		chatroomId: ArgumentTypes.AccountId,
+		participant: ArgumentTypes.AccountId,
 		__options: GasLimit,
 	){
-		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "getOwner", (events: EventRecord) => {
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "invite", (events: EventRecord) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [chatroomId, participant], __options);
+	}
+
+	/**
+	* sendMessage
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @param { string } message,
+	* @returns { void }
+	*/
+	"sendMessage" (
+		chatroomId: ArgumentTypes.AccountId,
+		message: string,
+		__options: GasLimit,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "sendMessage", (events: EventRecord) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [chatroomId, message], __options);
+	}
+
+	/**
+	* getMessages
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { Result<Array<string>, ReturnTypes.LangError> }
+	*/
+	"getMessages" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	): Promise< QueryReturnType< Result<Array<string>, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "getMessages", [chatroomId], __options, (result) => { return handleReturnType(result, getTypeDescription(14, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* deleteChatroom
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { void }
+	*/
+	"deleteChatroom" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "deleteChatroom", (events: EventRecord) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [chatroomId], __options);
+	}
+
+	/**
+	* setTimeout
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @param { (number | string | BN) } timeout,
+	* @returns { void }
+	*/
+	"setTimeout" (
+		chatroomId: ArgumentTypes.AccountId,
+		timeout: (number | string | BN),
+		__options: GasLimit,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setTimeout", (events: EventRecord) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [chatroomId, timeout], __options);
+	}
+
+	/**
+	* checkTimeout
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { void }
+	*/
+	"checkTimeout" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "checkTimeout", (events: EventRecord) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [chatroomId], __options);
 	}
 
 }

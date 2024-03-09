@@ -17,20 +17,6 @@ export default class EventsClass {
 		this.__api = api;
 	}
 
-	public subscribeOnChatroomCreatedEvent(callback : (event : EventTypes.ChatroomCreated) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('ChatroomCreated', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.ChatroomCreated);
-		};
-
-		return this.__subscribeOnEvent(callbackWrapper, (eventName : string) => eventName == 'ChatroomCreated');
-	}
-
 
 	private __subscribeOnEvent(
 		callback : (args: any[], event: any) => void,

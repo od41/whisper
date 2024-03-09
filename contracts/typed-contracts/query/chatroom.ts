@@ -30,25 +30,111 @@ export default class Methods {
 	}
 
 	/**
-	* getId
-	*
-	* @returns { Result<string, ReturnTypes.LangError> }
-	*/
-	"getId" (
-		__options ? : GasLimit,
-	): Promise< QueryReturnType< Result<string, ReturnTypes.LangError> > >{
-		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "getId", [], __options , (result) => { return handleReturnType(result, getTypeDescription(9, DATA_TYPE_DESCRIPTIONS)); });
-	}
-
-	/**
-	* getOwner
+	* createChatroom
 	*
 	* @returns { Result<ReturnTypes.AccountId, ReturnTypes.LangError> }
 	*/
-	"getOwner" (
+	"createChatroom" (
 		__options ? : GasLimit,
 	): Promise< QueryReturnType< Result<ReturnTypes.AccountId, ReturnTypes.LangError> > >{
-		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "getOwner", [], __options , (result) => { return handleReturnType(result, getTypeDescription(10, DATA_TYPE_DESCRIPTIONS)); });
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "createChatroom", [], __options , (result) => { return handleReturnType(result, getTypeDescription(10, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* getChatroom
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { Result<ReturnTypes.Room | null, ReturnTypes.LangError> }
+	*/
+	"getChatroom" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options ? : GasLimit,
+	): Promise< QueryReturnType< Result<ReturnTypes.Room | null, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "getChatroom", [chatroomId], __options , (result) => { return handleReturnType(result, getTypeDescription(11, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* invite
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @param { ArgumentTypes.AccountId } participant,
+	* @returns { Result<null, ReturnTypes.LangError> }
+	*/
+	"invite" (
+		chatroomId: ArgumentTypes.AccountId,
+		participant: ArgumentTypes.AccountId,
+		__options ? : GasLimit,
+	): Promise< QueryReturnType< Result<null, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "invite", [chatroomId, participant], __options , (result) => { return handleReturnType(result, getTypeDescription(7, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* sendMessage
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @param { string } message,
+	* @returns { Result<null, ReturnTypes.LangError> }
+	*/
+	"sendMessage" (
+		chatroomId: ArgumentTypes.AccountId,
+		message: string,
+		__options ? : GasLimit,
+	): Promise< QueryReturnType< Result<null, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "sendMessage", [chatroomId, message], __options , (result) => { return handleReturnType(result, getTypeDescription(7, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* getMessages
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { Result<Array<string>, ReturnTypes.LangError> }
+	*/
+	"getMessages" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options ? : GasLimit,
+	): Promise< QueryReturnType< Result<Array<string>, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "getMessages", [chatroomId], __options , (result) => { return handleReturnType(result, getTypeDescription(14, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* deleteChatroom
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { Result<null, ReturnTypes.LangError> }
+	*/
+	"deleteChatroom" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options ? : GasLimit,
+	): Promise< QueryReturnType< Result<null, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "deleteChatroom", [chatroomId], __options , (result) => { return handleReturnType(result, getTypeDescription(7, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* setTimeout
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @param { (number | string | BN) } timeout,
+	* @returns { Result<null, ReturnTypes.LangError> }
+	*/
+	"setTimeout" (
+		chatroomId: ArgumentTypes.AccountId,
+		timeout: (number | string | BN),
+		__options ? : GasLimit,
+	): Promise< QueryReturnType< Result<null, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "setTimeout", [chatroomId, timeout], __options , (result) => { return handleReturnType(result, getTypeDescription(7, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* checkTimeout
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @returns { Result<null, ReturnTypes.LangError> }
+	*/
+	"checkTimeout" (
+		chatroomId: ArgumentTypes.AccountId,
+		__options ? : GasLimit,
+	): Promise< QueryReturnType< Result<null, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "checkTimeout", [chatroomId], __options , (result) => { return handleReturnType(result, getTypeDescription(7, DATA_TYPE_DESCRIPTIONS)); });
 	}
 
 }
