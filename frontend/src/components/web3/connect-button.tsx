@@ -36,6 +36,7 @@ import { env } from '@/config/environment'
 import { truncateHash } from '@/utils/truncate-hash'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import NewChatRoomButton from './new-chatroom-button'
 
 export interface ConnectButtonProps {}
 export const ConnectButton: FC<ConnectButtonProps> = () => {
@@ -114,105 +115,109 @@ export const ConnectButton: FC<ConnectButtonProps> = () => {
 
   // Account Menu & Disconnect Button
   return (
-    <div className="flex select-none flex-wrap items-stretch justify-center gap-4">
-      {/* Account Name, Address, and AZERO.ID-Domain (if assigned) */}
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          asChild
-          className="rounded-2xl bg-gray-900 px-4 py-6 font-bold text-foreground"
-        >
-          <Button className="min-w-[14rem] border" translate="no">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex flex-col items-center justify-center">
-                <AccountName account={activeAccount} />
-                <span className="text-xs font-normal">
-                  {truncateHash(
-                    encodeAddress(activeAccount.address, activeChain?.ss58Prefix || 42),
-                    8,
-                  )}
-                </span>
+    <div>
+      <div className="flex select-none flex-wrap items-stretch justify-center gap-4">
+        {/* Account Name, Address, and AZERO.ID-Domain (if assigned) */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            asChild
+            className="rounded-2xl bg-gray-900 px-4 py-6 font-bold text-foreground"
+          >
+            <Button className="min-w-[14rem] border" translate="no">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col items-center justify-center">
+                  <AccountName account={activeAccount} />
+                  <span className="text-xs font-normal">
+                    {truncateHash(
+                      encodeAddress(activeAccount.address, activeChain?.ss58Prefix || 42),
+                      8,
+                    )}
+                  </span>
+                </div>
+                <FiChevronDown className="shrink-0" size={22} aria-hidden="true" />
               </div>
-              <FiChevronDown className="shrink-0" size={22} aria-hidden="true" />
-            </div>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          className="no-scrollbar max-h-[40vh] min-w-[14rem] overflow-scroll rounded-2xl"
-        >
-          {/* Supported Chains */}
-          {supportedChains.map((chain) => (
-            <DropdownMenuItem
-              disabled={chain.network === activeChain?.network}
-              className={chain.network !== activeChain?.network ? 'cursor-pointer' : ''}
-              key={chain.network}
-              onClick={async () => {
-                await switchActiveChain?.(chain)
-                toast.success(`Switched to ${chain.name}`)
-              }}
-            >
-              <div className="flex w-full items-center justify-between gap-2">
-                <p>{chain.name}</p>
-                {chain.network === activeChain?.network && (
-                  <AiOutlineCheckCircle className="shrink-0" size={15} />
-                )}
-              </div>
-            </DropdownMenuItem>
-          ))}
-
-          {/* Available Accounts/Wallets */}
-          <DropdownMenuSeparator />
-          {(accounts || []).map((acc) => {
-            const encodedAddress = encodeAddress(acc.address, activeChain?.ss58Prefix || 42)
-            const truncatedEncodedAddress = truncateHash(encodedAddress, 10)
-
-            return (
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="no-scrollbar max-h-[40vh] min-w-[14rem] overflow-scroll rounded-2xl"
+          >
+            {/* Supported Chains */}
+            {supportedChains.map((chain) => (
               <DropdownMenuItem
-                key={encodedAddress}
-                disabled={acc.address === activeAccount?.address}
-                className={acc.address !== activeAccount?.address ? 'cursor-pointer' : ''}
-                onClick={() => {
-                  setActiveAccount?.(acc)
+                disabled={chain.network === activeChain?.network}
+                className={chain.network !== activeChain?.network ? 'cursor-pointer' : ''}
+                key={chain.network}
+                onClick={async () => {
+                  await switchActiveChain?.(chain)
+                  toast.success(`Switched to ${chain.name}`)
                 }}
               >
-                <div className="flex w-full items-center justify-between">
-                  <div>
-                    <AccountName account={acc} />
-                    <p className="text-xs">{truncatedEncodedAddress}</p>
-                  </div>
-                  {acc.address === activeAccount?.address && (
+                <div className="flex w-full items-center justify-between gap-2">
+                  <p>{chain.name}</p>
+                  {chain.network === activeChain?.network && (
                     <AiOutlineCheckCircle className="shrink-0" size={15} />
                   )}
                 </div>
               </DropdownMenuItem>
-            )
-          })}
+            ))}
 
-          {/* Disconnect Button */}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer" onClick={() => disconnect?.()}>
-            <div className="flex gap-2">
-              <AiOutlineDisconnect size={18} />
-              Disconnect
-            </div>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            {/* Available Accounts/Wallets */}
+            <DropdownMenuSeparator />
+            {(accounts || []).map((acc) => {
+              const encodedAddress = encodeAddress(acc.address, activeChain?.ss58Prefix || 42)
+              const truncatedEncodedAddress = truncateHash(encodedAddress, 10)
 
-      {/* Account Balance */}
-      {reducibleBalanceFormatted !== undefined && (
-        <div className="flex min-w-[10rem] items-center justify-center gap-2 rounded-2xl border bg-gray-900 px-4 py-3 font-mono text-sm font-bold text-foreground">
-          {reducibleBalanceFormatted}
-          {(!reducibleBalance || reducibleBalance?.isZero()) && (
-            <Tooltip>
-              <TooltipTrigger className="cursor-help">
-                <AlertOctagon size={16} className="text-warning" />
-              </TooltipTrigger>
-              <TooltipContent>No balance to pay fees</TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      )}
+              return (
+                <DropdownMenuItem
+                  key={encodedAddress}
+                  disabled={acc.address === activeAccount?.address}
+                  className={acc.address !== activeAccount?.address ? 'cursor-pointer' : ''}
+                  onClick={() => {
+                    setActiveAccount?.(acc)
+                  }}
+                >
+                  <div className="flex w-full items-center justify-between">
+                    <div>
+                      <AccountName account={acc} />
+                      <p className="text-xs">{truncatedEncodedAddress}</p>
+                    </div>
+                    {acc.address === activeAccount?.address && (
+                      <AiOutlineCheckCircle className="shrink-0" size={15} />
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              )
+            })}
+
+            {/* Disconnect Button */}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer" onClick={() => disconnect?.()}>
+              <div className="flex gap-2">
+                <AiOutlineDisconnect size={18} />
+                Disconnect
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Account Balance */}
+        {reducibleBalanceFormatted !== undefined && (
+          <div className="flex min-w-[10rem] items-center justify-center gap-2 rounded-2xl border bg-gray-900 px-4 py-3 font-mono text-sm font-bold text-foreground">
+            {reducibleBalanceFormatted}
+            {(!reducibleBalance || reducibleBalance?.isZero()) && (
+              <Tooltip>
+                <TooltipTrigger className="cursor-help">
+                  <AlertOctagon size={16} className="text-warning" />
+                </TooltipTrigger>
+                <TooltipContent>No balance to pay fees</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        )}
+      </div>
+
+      <NewChatRoomButton />
     </div>
   )
 }
