@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { ContractIds } from '@/deployments/deployments'
 import ChatroomContract from '@inkathon/contracts/typed-contracts/contracts/chatroom'
 import {
@@ -17,11 +19,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import { Input } from '../ui/input'
 
 const NewChatRoomButton = () => {
   const { api, activeAccount, activeSigner } = useInkathon()
   const { contract, address: contractAddress } = useRegisteredContract(ContractIds.Chatroom)
   const { typedContract } = useRegisteredTypedContract(ContractIds.Chatroom, ChatroomContract)
+  const [chatroomId, setChatroomId] = useState('5CqRGE6QMZUxh8anBchE69P8gt3sojPtwNQkmpKwWPz9yPRB')
+  const [participantId, setParticipantId] = useState<string>()
 
   const supportedChains: any[] = [
     {
@@ -42,6 +47,46 @@ const NewChatRoomButton = () => {
 
     try {
       await contractTxWithToast(api, activeAccount.address, contract, 'createChatroom', {}, [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      // fetchMessages()
+    }
+  }
+
+  const handleDeleteChatroom = async () => {
+    if (!activeAccount || !contract || !activeSigner || !api) {
+      toast.error('Wallet not connected. Try again…')
+      return
+    }
+
+    // TODO include check that caller must be owner
+
+    try {
+      await contractTxWithToast(api, activeAccount.address, contract, 'deleteChatroom', {}, [
+        chatroomId,
+      ])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      // fetchMessages()
+    }
+  }
+
+  const handleInviteFriends = async () => {
+    if (!activeAccount || !contract || !activeSigner || !api) {
+      toast.error('Wallet not connected. Try again…')
+      return
+    }
+
+    // TODO include check that caller must be owner
+    console.log('invite', chatroomId, participantId)
+
+    try {
+      await contractTxWithToast(api, activeAccount.address, contract, 'invite', {}, [
+        chatroomId,
+        participantId,
+      ])
     } catch (e) {
       console.error(e)
     } finally {
@@ -89,10 +134,28 @@ const NewChatRoomButton = () => {
         </DropdownMenu>
       ) : (
         <div className="flex select-none flex-wrap items-stretch justify-center gap-4">
-          <Button variant="outline" className="min-w-[14rem] border" translate="no">
-            Invite friends
-          </Button>
-          <Button variant="destructive" className="min-w-[10rem] border" translate="no">
+          <div className="flex w-full">
+            <Input
+              placeholder="Account ID"
+              type="text"
+              onChange={(e) => setParticipantId(String(e.target.value))}
+            />
+
+            <Button
+              onClick={handleInviteFriends}
+              variant="outline"
+              className="min-w-[14rem] border"
+              translate="no"
+            >
+              Invite friends
+            </Button>
+          </div>
+          <Button
+            onClick={handleDeleteChatroom}
+            variant="destructive"
+            className="min-w-[10rem] border"
+            translate="no"
+          >
             Delete chatroom
           </Button>
         </div>
