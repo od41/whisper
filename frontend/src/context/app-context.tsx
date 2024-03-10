@@ -21,9 +21,10 @@ type AppContextProps = {
   createChatroom: () => Promise<void>
   deleteChatroom: () => Promise<void>
   inviteFriends: (participants: string[]) => Promise<void>
+  joinChatroom: (chatroomId: string) => Promise<void>
   refreshMessages: () => Promise<void>
   messages: MessageProps[]
-  chatroomId: string | null
+  chatroomId: string | undefined
   isAppLoading: boolean
   isChatroomLoading: boolean
   isMessagesLoading: boolean
@@ -36,9 +37,10 @@ const defaultData: AppContextProps = {
   createChatroom: async () => {},
   deleteChatroom: async () => {},
   inviteFriends: async (participants: string[]) => {},
+  joinChatroom: async (chatroomId: string) => {},
   refreshMessages: async () => {},
   messages: [],
-  chatroomId: null,
+  chatroomId: undefined,
   isAppLoading: true,
   isChatroomLoading: true,
   isMessagesLoading: true,
@@ -48,7 +50,7 @@ export const AppContext = createContext(defaultData)
 export function AppProvider({ children }: { children: React.ReactNode }) {
   // app state
   const [isChatroomActive, setIsChatroomActive] = useState(false)
-  const [chatroomId, setChatroomId] = useState('5CqRGE6QMZUxh8anBchE69P8gt3sojPtwNQkmpKwWPz9yPRB')
+  const [chatroomId, setChatroomId] = useState<string>()
   const [messages, setMessages] = useState<MessageProps[]>([])
 
   // loading state
@@ -60,7 +62,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const { api, activeAccount, activeSigner } = useInkathon()
   const { contract, address: contractAddress } = useRegisteredContract(ContractIds.Chatroom)
 
+  // set app as loaded
+  useEffect(() => {
+    async function loadApp() {
+      if (activeAccount && contract && activeSigner && api) {
+        // check if the active account has an active chatroom, load it
+        const room = await queryChatroom(activeAccount.address)
+        // check if room object is not empty
+        if (!(Object.keys(room).length === 0 && room.constructor === Object)) {
+          console.log('room', room)
+          setIsChatroomActive(true)
+          setChatroomId(activeAccount.address)
+          setMessages(room.messages)
+        } else {
+          // you haven't created a chatroom, so join one if you've been invited
+          setIsChatroomActive(false)
+        }
+        setIsAppLoading(false)
+        setIsChatroomLoading(false)
+        setIsMessagesLoading(false)
+      }
+    }
+    loadApp()
+  }, [activeAccount, contract, activeSigner, api])
+
   // functions
+
+  // query chatroom
+  async function queryChatroom(_chatroomId: string): Promise<any> {
+    if (!activeAccount || !contract || !activeSigner || !api) {
+      toast.error('Wallet not connected. Try again… chatroom')
+      return
+    }
+
+    try {
+      const result = await contractQuery(api, activeAccount.address, contract, 'getChatroom', {}, [
+        _chatroomId,
+      ])
+      const { output, isError, decodedOutput } = decodeOutput(result, contract, 'getChatroom')
+      if (isError) throw new Error(decodedOutput)
+      console.log('out', output, decodedOutput)
+      if (!(Object.keys(output).length === 0 && output.constructor === Object)) {
+        // TODO change contract to output None and check for null here
+        return output
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error('Error while loading chatroom. Try again…')
+    }
+    return {}
+  }
 
   // fetch chatroom
   const fetchChatroom = async () => {
@@ -72,11 +123,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsChatroomLoading(true)
 
     try {
+      console.log('chatroomId in fetchchatroom', chatroomId)
       const result = await contractQuery(api, activeAccount.address, contract, 'getChatroom', {}, [
         chatroomId,
       ])
       const { output, isError, decodedOutput } = decodeOutput(result, contract, 'getChatroom')
       if (isError) throw new Error(decodedOutput)
+      console.log('in fetchChatroom. output:', output)
       if (!(Object.keys(output).length === 0 && output.constructor === Object)) {
         // TODO change contract to output None and check for null here
         setIsChatroomActive(true)
@@ -91,9 +144,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  useEffect(() => {
-    fetchChatroom()
-  }, [api, activeAccount, contract, activeSigner])
+  // useEffect(() => {
+  //   if (chatroomId) {
+  //     fetchChatroom()
+  //   }
+  // }, [isAppLoading])
 
   // Fetch messages
   const getMessages = async () => {
@@ -137,6 +192,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         chatroomId,
         newMessage,
       ])
+      await getMessages()
     } catch (e) {
       console.error(e)
     } finally {
@@ -152,6 +208,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await contractTxWithToast(api, activeAccount.address, contract, 'createChatroom', {}, [])
+      //set chatroomid to the caller of the create function
+      setChatroomId(activeAccount.address)
+      //fetch messages
+      await getMessages()
+      //set active chat to true
+      setIsChatroomActive(true)
     } catch (e) {
       console.error(e)
     } finally {
@@ -199,6 +261,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // join chatroom
+  async function joinChatroom(joinChatroomId: string) {
+    setIsChatroomLoading(true)
+    setIsMessagesLoading(true)
+    if (!activeAccount || !contract || !activeSigner || !api) {
+      toast.error('Wallet not connected. Try again…')
+      return
+    }
+
+    //check if you've been invited
+
+    const room = await queryChatroom(joinChatroomId)
+    // check if room object is not empty
+    if (!(Object.keys(room).length === 0 && room.constructor === Object)) {
+      console.log('room', room)
+      setIsChatroomActive(true)
+      setChatroomId(joinChatroomId)
+      setMessages(room.messages)
+    } else {
+      // you haven't created a chatroom, so join one if you've been invited
+      setIsChatroomActive(false)
+    }
+    setIsChatroomLoading(false)
+    setIsMessagesLoading(false)
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -211,6 +299,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         createChatroom,
         deleteChatroom,
         inviteFriends,
+        joinChatroom,
         sendMessage,
         messages,
         chatroomId,

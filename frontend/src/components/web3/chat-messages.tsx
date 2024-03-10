@@ -15,14 +15,13 @@ import { SendMessage } from './send-message'
 
 export const ChatMessages: FC = () => {
   const { activeChain } = useInkathon()
-  const { isChatroomLoading, isChatroomActive, messages, isMessagesLoading } =
+  const { isChatroomLoading, isChatroomActive, messages, chatroomId, isMessagesLoading } =
     useContext(AppContext)
-  console.log('ischatroomactive', isChatroomActive)
 
   // Connection Loading Indicator
   if (isChatroomLoading)
     return (
-      <div className="my-8 flex w-full flex-col items-center justify-center space-y-3 text-center font-mono text-sm text-gray-400 sm:flex-row sm:space-x-3 sm:space-y-0">
+      <div className="flex h-full w-full flex-col items-center justify-center space-y-3 rounded-md border text-center font-mono text-sm text-gray-400 sm:flex-row sm:space-x-3 sm:space-y-0">
         <Spinner />
         <div>Connecting to chatrooms</div>
       </div>
@@ -30,7 +29,7 @@ export const ChatMessages: FC = () => {
   if (!isChatroomLoading && !isChatroomActive)
     // No chatroom found
     return (
-      <div className="my-8 flex w-full flex-col items-center justify-center space-y-3 text-center font-mono text-sm text-gray-400 sm:flex-row sm:space-x-3 sm:space-y-0">
+      <div className=" flex h-full w-full flex-col items-center justify-center space-y-3 rounded-md border text-center font-mono text-sm text-gray-400 sm:flex-row sm:space-x-3 sm:space-y-0">
         <BsChatSquareQuote />
         <div>No chatroom found</div>
       </div>
@@ -39,7 +38,9 @@ export const ChatMessages: FC = () => {
   return (
     <>
       <div className="flex w-full grow flex-col gap-4">
-        <h2 className="text-center font-mono text-gray-400">Chatroom</h2>
+        <h2 className="text-center font-mono text-gray-400">
+          Chatroom ID: <span className="truncate"> {chatroomId} </span>
+        </h2>
 
         <Card>
           <CardContent className="p-4">

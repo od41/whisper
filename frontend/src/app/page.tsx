@@ -36,10 +36,12 @@ export default function HomePage() {
         {/* Title */}
         <HomePageTitle />
 
-        <div className="flex">
-          <ConnectButton />
+        <div className="flex h-full gap-12">
+          <div className="w-[45%]">
+            <ConnectButton />
+          </div>
 
-          <div className="mt-12 flex min-w-[25rem] flex-col items-start justify-center gap-4">
+          <div className="flex w-[55%] min-w-[25rem] flex-col items-start justify-center gap-4">
             <ChatMessages />
           </div>
         </div>

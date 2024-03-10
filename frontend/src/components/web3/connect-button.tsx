@@ -35,6 +35,7 @@ import {
 import { env } from '@/config/environment'
 import { truncateHash } from '@/utils/truncate-hash'
 
+import { Input } from '../ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import NewChatRoomButton from './new-chatroom-button'
 
@@ -116,18 +117,18 @@ export const ConnectButton: FC<ConnectButtonProps> = () => {
   // Account Menu & Disconnect Button
   return (
     <div>
-      <div className="flex select-none flex-wrap items-stretch justify-center gap-4">
+      <div className="flex select-none flex-wrap items-stretch justify-between gap-2">
         {/* Account Name, Address, and AZERO.ID-Domain (if assigned) */}
         <DropdownMenu>
           <DropdownMenuTrigger
             asChild
             className="rounded-2xl bg-gray-900 px-4 py-6 font-bold text-foreground"
           >
-            <Button className="min-w-[14rem] border" translate="no">
+            <Button className="w-[52%] min-w-[8rem] border" translate="no">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-col items-center justify-center">
                   <AccountName account={activeAccount} />
-                  <span className="text-xs font-normal">
+                  <span className="text-[10px] font-normal">
                     {truncateHash(
                       encodeAddress(activeAccount.address, activeChain?.ss58Prefix || 42),
                       8,
@@ -203,7 +204,7 @@ export const ConnectButton: FC<ConnectButtonProps> = () => {
 
         {/* Account Balance */}
         {reducibleBalanceFormatted !== undefined && (
-          <div className="flex min-w-[10rem] items-center justify-center gap-2 rounded-2xl border bg-gray-900 px-4 py-3 font-mono text-sm font-bold text-foreground">
+          <div className="flex w-[30%] min-w-[8rem] items-center justify-center gap-2 rounded-2xl border bg-gray-900 px-4 py-3 font-mono text-sm font-bold text-foreground">
             {reducibleBalanceFormatted}
             {(!reducibleBalance || reducibleBalance?.isZero()) && (
               <Tooltip>

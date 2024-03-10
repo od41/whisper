@@ -30,8 +30,8 @@ export const SendMessage: FC = () => {
 
   // send a message
   const handleSendMessage: SubmitHandler<z.infer<typeof formSchema>> = async ({ newMessage }) => {
-    toast.error('Please type a message')
     if (newMessage == '') {
+      toast.error('Please type a message')
       return
     }
     await sendMessage(newMessage)
@@ -63,7 +63,7 @@ export const SendMessage: FC = () => {
                   <Button
                     type="submit"
                     className="bg-primary font-bold"
-                    disabled={form.formState.isSubmitting}
+                    disabled={form.formState.isSubmitting || !form.formState.isValid}
                     isLoading={form.formState.isSubmitting}
                   >
                     Send
