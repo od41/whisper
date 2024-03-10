@@ -176,8 +176,6 @@ mod chatroom {
 
     #[cfg(test)]
     mod tests {
-        use ink::env::{account_id, test::default_accounts};
-
         use super::*;
 
         #[ink::test]

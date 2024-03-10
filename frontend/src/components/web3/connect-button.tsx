@@ -217,6 +217,7 @@ export const ConnectButton: FC<ConnectButtonProps> = () => {
         )}
       </div>
 
+      {/* New chatroom dropdown menu button */}
       <NewChatRoomButton />
     </div>
   )

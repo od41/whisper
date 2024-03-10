@@ -23,10 +23,13 @@ export default function HomePage() {
       <div className="container relative flex grow flex-col items-center justify-center py-10 pt-0">
         {/* Title */}
         <HomePageTitle />
-        <ConnectButton />
 
-        <div className="mt-12 flex max-w-[22rem] flex-col items-start justify-center gap-4">
-          <ChatMessages />
+        <div className="flex">
+          <ConnectButton />
+
+          <div className="mt-12 flex min-w-[25rem] flex-col items-start justify-center gap-4">
+            <ChatMessages />
+          </div>
         </div>
       </div>
     </>
