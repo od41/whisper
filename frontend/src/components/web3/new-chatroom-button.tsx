@@ -1,16 +1,10 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 
-import { ContractIds } from '@/deployments/deployments'
-import ChatroomContract from '@inkathon/contracts/typed-contracts/contracts/chatroom'
-import {
-  useInkathon,
-  useRegisteredContract,
-  useRegisteredTypedContract,
-} from '@scio-labs/use-inkathon'
-import toast from 'react-hot-toast'
+import { AppContext } from '@/context/app-context'
+import { useInkathon, useRegisteredContract } from '@scio-labs/use-inkathon'
 import { FiChevronDown } from 'react-icons/fi'
 
-import { contractTxWithToast } from '@/utils/contract-tx-with-toast'
+import { env } from '@/config/environment'
 
 import { Button } from '../ui/button'
 import {
@@ -22,81 +16,31 @@ import {
 import { Input } from '../ui/input'
 
 const NewChatRoomButton = () => {
-  const { api, activeAccount, activeSigner } = useInkathon()
-  const { contract, address: contractAddress } = useRegisteredContract(ContractIds.Chatroom)
-  const { typedContract } = useRegisteredTypedContract(ContractIds.Chatroom, ChatroomContract)
-  const [chatroomId, setChatroomId] = useState('5CqRGE6QMZUxh8anBchE69P8gt3sojPtwNQkmpKwWPz9yPRB')
+  const { activeAccount } = useInkathon()
   const [participantId, setParticipantId] = useState<string>()
-
-  const supportedChains: any[] = [
-    {
-      name: 'Aleph Zero',
-      description: 'Lorem ipsum',
-    },
-    {
-      name: 'Accurast',
-      description: 'Lorem ipsum',
-    },
-  ]
+  const { isChatroomActive, createChatroom, deleteChatroom, inviteFriends } = useContext(AppContext)
 
   const handleCreateChat = async (chain: any) => {
-    if (!activeAccount || !contract || !activeSigner || !api) {
-      toast.error('Wallet not connected. Try again…')
-      return
-    }
-
-    try {
-      await contractTxWithToast(api, activeAccount.address, contract, 'createChatroom', {}, [])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      // fetchMessages()
+    if (chain.name == 'Aleph Zero') {
+      await createChatroom()
+    } else if (chain.name == 'Accurast') {
+      await createChatroom()
     }
   }
 
   const handleDeleteChatroom = async () => {
-    if (!activeAccount || !contract || !activeSigner || !api) {
-      toast.error('Wallet not connected. Try again…')
-      return
-    }
-
-    // TODO include check that caller must be owner
-
-    try {
-      await contractTxWithToast(api, activeAccount.address, contract, 'deleteChatroom', {}, [
-        chatroomId,
-      ])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      // fetchMessages()
-    }
+    await deleteChatroom()
   }
 
   const handleInviteFriends = async () => {
-    if (!activeAccount || !contract || !activeSigner || !api) {
-      toast.error('Wallet not connected. Try again…')
-      return
-    }
+    if (!participantId) return
 
-    // TODO include check that caller must be owner
-    console.log('invite', chatroomId, participantId)
-
-    try {
-      await contractTxWithToast(api, activeAccount.address, contract, 'invite', {}, [
-        chatroomId,
-        participantId,
-      ])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      // fetchMessages()
-    }
+    await inviteFriends([participantId])
   }
 
   return (
     <div className="mt-8 w-full">
-      {api ? ( // TODO get value of active chatroom
+      {activeAccount && isChatroomActive ? ( //
         <DropdownMenu>
           <DropdownMenuTrigger
             asChild
@@ -119,7 +63,7 @@ const NewChatRoomButton = () => {
             className="no-scrollbar max-h-[40vh] w-full min-w-[20rem] overflow-scroll rounded-2xl"
           >
             {/* Supported Chains */}
-            {supportedChains.map((chain) => (
+            {env.chatroomChains.map((chain) => (
               <DropdownMenuItem
                 key={`network-${chain.name}`}
                 className="cursor-pointer"

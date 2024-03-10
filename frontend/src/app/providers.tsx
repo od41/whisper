@@ -2,6 +2,7 @@
 
 import { PropsWithChildren } from 'react'
 
+import { AppProvider } from '@/context/app-context'
 import { getDeployments } from '@/deployments/deployments'
 import { UseInkathonProvider } from '@scio-labs/use-inkathon'
 
@@ -15,7 +16,7 @@ export default function ClientProviders({ children }: PropsWithChildren) {
       defaultChain={env.defaultChain}
       deployments={getDeployments()}
     >
-      {children}
+      <AppProvider>{children}</AppProvider>
     </UseInkathonProvider>
   )
 }

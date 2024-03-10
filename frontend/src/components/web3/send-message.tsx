@@ -1,15 +1,11 @@
 'use client'
 
-import { FC, useState } from 'react'
+import { FC, useContext } from 'react'
 
+import { AppContext } from '@/context/app-context'
 import { ContractIds } from '@/deployments/deployments'
 import { zodResolver } from '@hookform/resolvers/zod'
-import ChatroomContract from '@inkathon/contracts/typed-contracts/contracts/chatroom'
-import {
-  useInkathon,
-  useRegisteredContract,
-  useRegisteredTypedContract,
-} from '@scio-labs/use-inkathon'
+import { useInkathon, useRegisteredContract } from '@scio-labs/use-inkathon'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import * as z from 'zod'
@@ -17,17 +13,14 @@ import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormItem } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { contractTxWithToast } from '@/utils/contract-tx-with-toast'
 
 const formSchema = z.object({
   newMessage: z.string().min(1).max(400),
 })
 
 export const SendMessage: FC = () => {
-  const { api, activeAccount, activeSigner } = useInkathon()
   const { contract, address: contractAddress } = useRegisteredContract(ContractIds.Chatroom)
-  const { typedContract } = useRegisteredTypedContract(ContractIds.Chatroom, ChatroomContract)
-  const [chatroomId, setChatroomId] = useState('5CqRGE6QMZUxh8anBchE69P8gt3sojPtwNQkmpKwWPz9yPRB')
+  const { chatroomId, sendMessage } = useContext(AppContext)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,23 +29,12 @@ export const SendMessage: FC = () => {
   const { register, reset, handleSubmit } = form
 
   // send a message
-  const sendMessage: SubmitHandler<z.infer<typeof formSchema>> = async ({ newMessage }) => {
-    if (!activeAccount || !contract || !activeSigner || !api) {
-      toast.error('Wallet not connected. Try again…')
+  const handleSendMessage: SubmitHandler<z.infer<typeof formSchema>> = async ({ newMessage }) => {
+    toast.error('Please type a message')
+    if (newMessage == '') {
       return
     }
-
-    try {
-      await contractTxWithToast(api, activeAccount.address, contract, 'sendMessage', {}, [
-        chatroomId,
-        newMessage,
-      ])
-      reset()
-    } catch (e) {
-      console.error(e)
-    } finally {
-      // refresh messages
-    }
+    await sendMessage(newMessage)
   }
 
   // if (!api) return null
@@ -66,7 +48,7 @@ export const SendMessage: FC = () => {
           {/* <Card> */}
           {/* <CardContent className="pt-6"> */}
           <form
-            onSubmit={handleSubmit(sendMessage)}
+            onSubmit={handleSubmit(handleSendMessage)}
             className="flex w-full flex-col justify-end gap-2"
           >
             <FormItem>

@@ -12,4 +12,14 @@ export const env = {
 
   defaultChain: process.env.NEXT_PUBLIC_DEFAULT_CHAIN!,
   supportedChains: getSupportedChains(),
+  chatroomChains: [
+    {
+      name: 'Aleph Zero',
+      description: 'Lorem ipsum',
+    },
+    {
+      name: 'Accurast',
+      description: 'Lorem ipsum',
+    },
+  ],
 }
