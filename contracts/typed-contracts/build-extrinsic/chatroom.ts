@@ -43,6 +43,20 @@ export default class Methods {
 	}
 
 	/**
+	 * isAParticipant
+	 *
+	 * @param { ArgumentTypes.AccountId } chatroomId,
+	 * @param { ArgumentTypes.AccountId } participantId,
+	*/
+	"isAParticipant" (
+		chatroomId: ArgumentTypes.AccountId,
+		participantId: ArgumentTypes.AccountId,
+		__options: GasLimit,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "isAParticipant", [chatroomId, participantId], __options);
+	}
+
+	/**
 	 * invite
 	 *
 	 * @param { ArgumentTypes.AccountId } chatroomId,

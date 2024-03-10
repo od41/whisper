@@ -55,6 +55,22 @@ export default class Methods {
 	}
 
 	/**
+	* isAParticipant
+	*
+	* @param { ArgumentTypes.AccountId } chatroomId,
+	* @param { ArgumentTypes.AccountId } participantId,
+	*/
+	"isAParticipant" (
+		chatroomId: ArgumentTypes.AccountId,
+		participantId: ArgumentTypes.AccountId,
+		__options ? : GasLimit,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "isAParticipant", (events: EventRecord) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [chatroomId, participantId], __options);
+	}
+
+	/**
 	* invite
 	*
 	* @param { ArgumentTypes.AccountId } chatroomId,

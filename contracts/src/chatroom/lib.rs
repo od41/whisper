@@ -12,6 +12,17 @@ mod chatroom {
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
+    pub struct Message {
+        sender: AccountId,
+        content: String,
+        sent_timestamp: Timestamp,
+    }
+
+    #[derive(Debug, Clone, PartialEq, scale::Encode, scale::Decode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
     pub struct Room {
         owner: AccountId,
         messages: Vec<String>,
@@ -22,6 +33,7 @@ mod chatroom {
     pub struct Chatroom {
         chatrooms: Mapping<AccountId, Room>,
         participants: Mapping<AccountId, Vec<AccountId>>,
+        messages: Mapping<AccountId, Vec<Message>>,
     }
 
     impl Chatroom {
@@ -31,6 +43,7 @@ mod chatroom {
             Self {
                 chatrooms: Mapping::new(),
                 participants: Mapping::new(),
+                messages: Mapping::new(),
             }
         }
 
@@ -62,6 +75,14 @@ mod chatroom {
             match self.chatrooms.get(chatroom_id) {
                 Some(chat) => Some(chat),
                 None => None,
+            }
+        }
+
+        #[ink(message)]
+        pub fn is_a_participant(&self, chatroom_id: AccountId, participant_id: AccountId) -> bool {
+            match self.participants.get(chatroom_id) {
+                Some(parts) => parts.contains(&participant_id),
+                None => false, // participant_id is not a member
             }
         }
 
