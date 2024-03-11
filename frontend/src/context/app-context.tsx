@@ -3,6 +3,7 @@
 import { createContext, useEffect, useState } from 'react'
 
 import { ContractIds } from '@/deployments/deployments'
+import { useAccurast } from '@/deployments/use-accurast'
 import {
   contractQuery,
   decodeOutput,
@@ -23,6 +24,7 @@ type AppContextProps = {
   inviteFriends: (participants: string[]) => Promise<void>
   joinChatroom: (chatroomId: string) => Promise<void>
   refreshMessages: () => Promise<void>
+  viaAccurast: () => Promise<void>
   messages: MessageProps[]
   chatroomId: string | undefined
   isAppLoading: boolean
@@ -39,6 +41,7 @@ const defaultData: AppContextProps = {
   inviteFriends: async (participants: string[]) => {},
   joinChatroom: async (chatroomId: string) => {},
   refreshMessages: async () => {},
+  viaAccurast: async () => {},
   messages: [],
   chatroomId: undefined,
   isAppLoading: true,
@@ -61,6 +64,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // web3 state
   const { api, activeAccount, activeSigner } = useInkathon()
   const { contract } = useRegisteredContract(ContractIds.Chatroom)
+  const { id, send } = useAccurast()
 
   // set app as loaded
   useEffect(() => {
@@ -260,6 +264,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsMessagesLoading(false)
   }
 
+  // accurast
+  async function viaAccurast() {
+    // TODO additional testing & implementation
+    const res = await send(activeAccount?.address, '')
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -274,6 +284,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         inviteFriends,
         joinChatroom,
         sendMessage,
+        viaAccurast,
         messages,
         chatroomId,
       }}

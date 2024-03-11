@@ -22,4 +22,5 @@ export const env = {
       description: 'Lorem ipsum',
     },
   ],
+  ACCU_DEV_WSS: process.env.NEXT_PUBLIC_ACCU_DEV_WSS!,
 }

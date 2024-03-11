@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@727-ventures/typechain-types": "^1.1.2",
+    "@acurast/dapp": "^1.0.0",
     "@azns/resolver-core": "^1.6.0",
     "@azns/resolver-react": "^1.6.0",
     "@hookform/resolvers": "^3.3.4",
