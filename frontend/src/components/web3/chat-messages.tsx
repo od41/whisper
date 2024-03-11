@@ -14,7 +14,6 @@ import { Message } from './message'
 import { SendMessage } from './send-message'
 
 export const ChatMessages: FC = () => {
-  const { activeChain } = useInkathon()
   const { isChatroomLoading, isChatroomActive, messages, chatroomId, isMessagesLoading } =
     useContext(AppContext)
 

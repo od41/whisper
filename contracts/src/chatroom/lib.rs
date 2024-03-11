@@ -25,7 +25,6 @@ mod chatroom {
     )]
     pub struct Room {
         owner: AccountId,
-        messages: Vec<String>,
         timeout: Timestamp,
     }
 
@@ -55,7 +54,6 @@ mod chatroom {
             let timeout = self.env().block_timestamp() + &3600000; // 60 minutes destroy chatroom in 60 minutes
             let new_chatroom = Room {
                 owner: Self::env().caller(),
-                messages: Vec::new(),
                 timeout: timeout,
             };
 
@@ -66,6 +64,15 @@ mod chatroom {
             let mut new_participants = Vec::new();
             new_participants.push(caller);
             self.participants.insert(caller, &new_participants);
+
+            // Store the messages
+            let mut new_messages = Vec::new();
+            new_messages.push(Message {
+                sender: caller,
+                content: String::from("Welcome to whisper!"),
+                sent_timestamp: self.env().block_timestamp(),
+            });
+            self.messages.insert(caller, &new_messages);
 
             caller // caller account_id is the id for the chatroom
         }
@@ -116,16 +123,19 @@ mod chatroom {
                 None => panic!("Chatroom doesn't exist"),
             };
 
-            let mut room = self.chatrooms.get(chatroom_id).unwrap();
+            let mut messages = self.messages.get(chatroom_id).unwrap();
 
-            // let mut messages = chatroom.messages;
-            room.messages.push(message);
+            messages.push(Message {
+                sender: caller,
+                content: message,
+                sent_timestamp: self.env().block_timestamp(),
+            });
 
-            self.chatrooms.insert(chatroom_id, &room);
+            self.messages.insert(chatroom_id, &messages);
         }
 
         #[ink(message)]
-        pub fn get_messages(&self, chatroom_id: AccountId) -> Vec<String> {
+        pub fn get_messages(&self, chatroom_id: AccountId) -> Vec<Message> {
             let caller = self.env().caller();
             // Ensure the sender is a participant of the chatroom
             match self.participants.get(&chatroom_id) {
@@ -137,10 +147,8 @@ mod chatroom {
                 }
                 None => panic!("Chatroom doesn't exist"),
             };
-            let room = self.get_chatroom(chatroom_id).unwrap();
 
-            // Retrieve messages for the caller if any
-            room.messages
+            self.messages.get(chatroom_id).unwrap()
         }
 
         #[ink(message)]
@@ -262,6 +270,8 @@ mod chatroom {
             chatroom.invite(chatroom_id, accounts.alice);
             chatroom.invite(chatroom_id, accounts.charlie);
 
+            // test to see if member is a participant
+
             // account 2 send message
             ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice); // set account2 as the current caller
             let message1 = String::from("This is the first message");
@@ -269,7 +279,12 @@ mod chatroom {
 
             // check message1
             assert!(
-                chatroom.get_messages(chatroom_id).contains(&message1),
+                chatroom
+                    .messages
+                    .get(chatroom_id)
+                    .unwrap()
+                    .iter()
+                    .any(|e| e.content == message1),
                 "Message does not exist"
             );
 
@@ -280,7 +295,12 @@ mod chatroom {
 
             // check message2
             assert!(
-                chatroom.get_messages(chatroom_id).contains(&message2),
+                chatroom
+                    .messages
+                    .get(chatroom_id)
+                    .unwrap()
+                    .iter()
+                    .any(|e| e.content == message2),
                 "Message does not exist"
             );
         }
@@ -302,6 +322,26 @@ mod chatroom {
             // attempt to delete chatroom by alice, should panic
             ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
             chatroom.delete_chatroom(chatroom_id);
+        }
+
+        #[ink::test]
+        fn is_a_participant_works() {
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+
+            let chatroom_id = accounts.bob.clone();
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(chatroom_id);
+
+            let mut chatroom = Chatroom::new();
+            chatroom.create_chatroom();
+
+            // invite alice & charlie
+            chatroom.invite(chatroom_id, accounts.alice);
+            chatroom.invite(chatroom_id, accounts.charlie);
+
+            assert!(chatroom.is_a_participant(chatroom_id, accounts.alice));
+            assert!(!chatroom.is_a_participant(chatroom_id, accounts.eve)); // eve has not been invited, so it should fail
+
+            // test to see if member is a participant
         }
 
         // TODO write a test for auto delete after 60 minutes

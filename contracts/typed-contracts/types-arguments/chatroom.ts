@@ -14,7 +14,6 @@ export enum LangError {
 
 export type Room = {
 	owner: AccountId,
-	messages: Array<string>,
 	timeout: (number | string | BN)
 }
 

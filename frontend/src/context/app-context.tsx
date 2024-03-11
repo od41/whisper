@@ -60,7 +60,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // web3 state
   const { api, activeAccount, activeSigner } = useInkathon()
-  const { contract, address: contractAddress } = useRegisteredContract(ContractIds.Chatroom)
+  const { contract } = useRegisteredContract(ContractIds.Chatroom)
 
   // set app as loaded
   useEffect(() => {
@@ -70,10 +70,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const room = await queryChatroom(activeAccount.address)
         // check if room object is not empty
         if (!(Object.keys(room).length === 0 && room.constructor === Object)) {
-          console.log('room', room)
           setIsChatroomActive(true)
           setChatroomId(activeAccount.address)
-          setMessages(room.messages)
+          await getMessages(activeAccount.address)
         } else {
           // you haven't created a chatroom, so join one if you've been invited
           setIsChatroomActive(false)
@@ -101,7 +100,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ])
       const { output, isError, decodedOutput } = decodeOutput(result, contract, 'getChatroom')
       if (isError) throw new Error(decodedOutput)
-      console.log('out', output, decodedOutput)
       if (!(Object.keys(output).length === 0 && output.constructor === Object)) {
         // TODO change contract to output None and check for null here
         return output
@@ -112,46 +110,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     return {}
   }
-
-  // fetch chatroom
-  const fetchChatroom = async () => {
-    if (!activeAccount || !contract || !activeSigner || !api) {
-      toast.error('Wallet not connected. Try again… chatroom')
-      return
-    }
-
-    setIsChatroomLoading(true)
-
-    try {
-      console.log('chatroomId in fetchchatroom', chatroomId)
-      const result = await contractQuery(api, activeAccount.address, contract, 'getChatroom', {}, [
-        chatroomId,
-      ])
-      const { output, isError, decodedOutput } = decodeOutput(result, contract, 'getChatroom')
-      if (isError) throw new Error(decodedOutput)
-      console.log('in fetchChatroom. output:', output)
-      if (!(Object.keys(output).length === 0 && output.constructor === Object)) {
-        // TODO change contract to output None and check for null here
-        setIsChatroomActive(true)
-        getMessages()
-      }
-    } catch (e) {
-      console.error(e)
-      toast.error('Error while loading chatroom. Try again…')
-      setIsChatroomLoading(false)
-    } finally {
-      setIsChatroomLoading(false)
-    }
-  }
-
-  // useEffect(() => {
-  //   if (chatroomId) {
-  //     fetchChatroom()
-  //   }
-  // }, [isAppLoading])
-
   // Fetch messages
-  const getMessages = async () => {
+  const getMessages = async (_chatroomId: string) => {
     if (!activeAccount || !contract || !activeSigner || !api) {
       toast.error('Wallet not connected. Try again… mesasges')
       return
@@ -161,11 +121,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const result = await contractQuery(api, activeAccount.address, contract, 'getMessages', {}, [
-        chatroomId,
+        _chatroomId,
       ])
       const { output, isError, decodedOutput } = decodeOutput(result, contract, 'getMessages')
       if (isError) throw new Error(decodedOutput)
-      console.log('messages: ', output)
       setMessages(output)
     } catch (e) {
       console.error(e)
@@ -177,7 +136,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function refreshMessages() {
-    await getMessages()
+    // await getMessages(chatroomId)
   }
 
   // send a message
@@ -192,7 +151,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         chatroomId,
         newMessage,
       ])
-      await getMessages()
+      await getMessages(chatroomId!)
     } catch (e) {
       console.error(e)
     } finally {
@@ -211,13 +170,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       //set chatroomid to the caller of the create function
       setChatroomId(activeAccount.address)
       //fetch messages
-      await getMessages()
+      await getMessages(activeAccount.address)
       //set active chat to true
       setIsChatroomActive(true)
     } catch (e) {
       console.error(e)
-    } finally {
-      // fetchMessages()
     }
   }
 
@@ -235,8 +192,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ])
     } catch (e) {
       console.error(e)
-    } finally {
-      // fetchMessages()
     }
   }
 
@@ -246,9 +201,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // TODO include check that caller must be owner
-    console.log('invite', chatroomId, participants[0])
-
     try {
       await contractTxWithToast(api, activeAccount.address, contract, 'invite', {}, [
         chatroomId,
@@ -256,8 +208,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ])
     } catch (e) {
       console.error(e)
-    } finally {
-      // fetchMessages()
     }
   }
 
@@ -270,12 +220,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    //check if you've been invited
+    //check if you've been invited to the chatroom
+    try {
+      const result = await contractQuery(
+        api,
+        activeAccount.address,
+        contract,
+        'isAParticipant',
+        {},
+        [joinChatroomId, activeAccount.address],
+      )
+      const { output, isError, decodedOutput } = decodeOutput(result, contract, 'isAParticipant')
+      if (isError) {
+        toast.error('Something went wrong')
+        throw new Error(decodedOutput)
+      }
+      if (!output) {
+        toast.error("You haven't been invited to this chatroom")
+        setIsChatroomLoading(false)
+        setIsMessagesLoading(false)
+        return
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error("Error we couldn't verify your invitation. Try again…")
+    }
 
     const room = await queryChatroom(joinChatroomId)
     // check if room object is not empty
     if (!(Object.keys(room).length === 0 && room.constructor === Object)) {
-      console.log('room', room)
       setIsChatroomActive(true)
       setChatroomId(joinChatroomId)
       setMessages(room.messages)
