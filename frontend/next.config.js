@@ -14,6 +14,7 @@ const nextConfig = {
   transpilePackages: ['@polkadot/.*'],
   // Standalone builds for Dockerfiles
   output: process.env.NEXT_BUILD_STANDALONE === 'true' ? 'standalone' : undefined,
+  distDir: './frontend/.next',
 }
 
 module.exports = nextConfig
