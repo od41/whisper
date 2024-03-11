@@ -2,7 +2,7 @@
 
 ---
 
-[![Whisper cover photo](/frontend/public/images/whisper-banner.png)](https://youtube.com)
+[![Whisper cover photo](/frontend/public/images/whisper-banner.png)](https://blue-whisper.vercel.app/)
 
 ### Whisper
 
@@ -10,7 +10,7 @@ Whisper is an app where the privacy focused can have ephemeral conversations alm
 
 [Live Demo](https://blue-whisper.vercel.app/)
 
-[Video Demo](https://youtube.com/)
+[Video Demo](https://youtu.be/T-jDoaK0q2I)
 
 ## How it works
 
